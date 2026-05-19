@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import apiRouter from "./routes/index.js";
 import { errorHandler, successHandler } from "./utils/responseHandler.js";
+import pool from "./configs/db.js";
 
 dotenv.config({});
 
@@ -10,6 +11,17 @@ const app = express();
 
 app.use(express.json());
 
+(async () => {
+  try {
+    await pool.query("SELECT NOW()");
+    console.log("Connected to database...");
+  } catch (error) {
+    console.log("Database connection failed", error);
+  }
+})();
+
+app.use("/api/v1", apiRouter);
+
 app.get("/", (req, res) => {
   return successHandler(res, {
     data: null,
@@ -17,8 +29,6 @@ app.get("/", (req, res) => {
     message: "Your application is running..",
   });
 });
-
-app.use("/api/v1", apiRouter);
 
 // API not found
 app.use((req, res) => {
